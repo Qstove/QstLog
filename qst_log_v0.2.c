@@ -47,37 +47,37 @@ static void PrintOchName(uint32_t number)
 	switch(number)
 	{
 	case 0:
-		debug_printf("\tМА\t");		break;
+		debug_printf("\t1очередь\t");		break;
 	case 1:
-		debug_printf("\tММ\t");		break;
+		debug_printf("\t2очередьt");		break;
 	case 2:
-		debug_printf("\tОД\t");		break;
+		debug_printf("\t3очередьt");		break;
 	case 3:
-		debug_printf("\tReg\t");	break;
+		debug_printf("\t4очередьt");	break;
 	case 4:
-		debug_printf("\tRScom(4)\t");	break;
+		debug_printf("\t5очередьt");	break;
 	case 5:
-		debug_printf("\tрез.\t");	break;
+		debug_printf("\t6очередьt");	break;
 	case 6:
 		debug_printf("\tФЛЕШ\t");	break;
 	case 7:
-		debug_printf("\tКИА\t");	break;
+		debug_printf("\t7очередь\t");	break;
 	case 8:
-		debug_printf("\tHz(8)\t");	break;
+		debug_printf("\t8очередь\t");	break;
 	case 9:
 		debug_printf("\tUART\t");	break;
 	case 10:
 		debug_printf("\tTest\t");	break;
 	case 11:
-		debug_printf("\tТЕСТ ТУ\t");break;
+		debug_printf("\t11очередь\t");break;
 	case 12:
 		debug_printf("\tUART_1\t"); break;
 	case 13:
-		debug_printf("\tDbg_proto(13)\t"); break;
+		debug_printf("\t12очередь\t"); break;
 	case 14:
 		debug_printf("\tUART_2\t"); break;
 	case 15:
-		debug_printf("\tБаланс\t");	break;
+		debug_printf("\t15очередь\t");	break;
 	}
 }
 
@@ -641,7 +641,7 @@ void LogPrintRam(uint32_t log_count, ...)
 
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogPrintState
-* Описание	 :	Функция состояния памяти системы документирования.
+* Описание	 :	Функция печати состояния памяти системы документирования.
 * Аргументы      :	NULL.
 * Возвращает     :	NULL.
 *************************************************************************************************************************************************/
