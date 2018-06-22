@@ -13,7 +13,6 @@
 #include <../uos/runtime/mips/types.h>
 
 #define ALLIGNED_MOD __attribute__ ((aligned(4)))
-#define NewPrintVer 1
 
 typedef enum{		//перечень ретернов
 	SUCCSES = 0,
@@ -62,15 +61,14 @@ typedef struct {
 
 
 /*ПРОТОТИПЫ ФУНКЦИЙ ЛОГИРОВАНИЯ И СТРУКТУРЫ ДАННЫХ*/
-#if NewPrintVer
+
 void LogPrintRam(uint32_t log_count, ...);										//печать логов
-#else
-void LogPrintRam(Event_t e);
-#endif
+
+void LogHelp(void);
 void LogPrintState(void);														//печать состояния памяти системы
 void TEST_LOG_SYSTEM(void);
 
-LOG_RES LogSend(void);															//отправка логов в МД
+LOG_RES LogSend(LOG_RES(*SendData)(uint32_t size, uint32_t * data));															//отправка логов в МД
 LOG_RES LogPoint_Type(Event_t e, bool_t TimeOption);							//для логирования события c(без) временем(ни)
 /*__________________________________________________________________________________________________________________________________________*/
 typedef  struct {	//8 байт, time TRUE
