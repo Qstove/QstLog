@@ -10,6 +10,7 @@
 #include "timer/timer.h"
 #include <mem/mem.h>
 #include "print_func.h"
+#include "send_func.h"
 
 #define OTL_PRINT_LOG 	0
 
@@ -41,62 +42,83 @@ static LOG_RES MemAdd()
 	num_of_log_part++;
 	return SUCCSES;
 }
-static void print_OchName(uint32_t number)
+static void PrintOchName(uint32_t number)
 {
 	switch(number)
 	{
 	case 0:
-		debug_printf("\tМА\t");
-		break;
+		debug_printf("\tМА\t");		break;
 	case 1:
-		debug_printf("\tММ\t");
-		break;
+		debug_printf("\tММ\t");		break;
 	case 2:
-		debug_printf("\tОД\t");
-		break;
+		debug_printf("\tОД\t");		break;
 	case 3:
-		debug_printf("\tReg\t");
-		break;
+		debug_printf("\tReg\t");	break;
 	case 4:
-		debug_printf("\tRScom(4)\t");
-		break;
+		debug_printf("\tRScom(4)\t");	break;
 	case 5:
-		debug_printf("\tрез.\t");
-		break;
+		debug_printf("\tрез.\t");	break;
 	case 6:
-		debug_printf("\tФЛЕШ\t");
-		break;
+		debug_printf("\tФЛЕШ\t");	break;
 	case 7:
-		debug_printf("\tКИА\t");
-		break;
+		debug_printf("\tКИА\t");	break;
 	case 8:
-		debug_printf("\tHz(8)\t");
-		break;
+		debug_printf("\tHz(8)\t");	break;
 	case 9:
-		debug_printf("\tUART\t");
-		break;
+		debug_printf("\tUART\t");	break;
 	case 10:
-		debug_printf("\tTest\t");
-		break;
+		debug_printf("\tTest\t");	break;
 	case 11:
-		debug_printf("\tТЕСТ ТУ\t");
-		break;
+		debug_printf("\tТЕСТ ТУ\t");break;
 	case 12:
-		debug_printf("\tUART_1\t");
-		break;
+		debug_printf("\tUART_1\t"); break;
 	case 13:
-		debug_printf("\tDbg_proto(13)\t");
-		break;
+		debug_printf("\tDbg_proto(13)\t"); break;
 	case 14:
-		debug_printf("\tUART_2\t");
-		break;
+		debug_printf("\tUART_2\t"); break;
 	case 15:
-		debug_printf("\tБаланс\t");
-		break;
+		debug_printf("\tБаланс\t");	break;
 	}
 }
 
-
+static void PrintEventName(Event_t e)
+{
+	switch(e)
+	{
+	case 0:
+		debug_printf("ОЧЕРЕДИ");	break;
+	case 1:
+		debug_printf("ТЕСТ0");		break;
+	case 2:
+		debug_printf("ТЕСТ0+ВРЕМЯ");break;
+	case 3:
+		debug_printf("ТЕСТ1");		break;
+	case 4:
+		debug_printf("ТЕСТ1+ВРЕМЯ");break;
+	case 5:
+		debug_printf("ТЕСТ2");		break;
+	case 6:
+		debug_printf("ТЕСТ2+ВРЕМЯ");break;
+	case 7:
+		debug_printf("ТЕСТ3");		break;
+	case 8:
+		debug_printf("ТЕСТ3+ВРЕМЯ");break;
+	case 9:
+		debug_printf("");			break;
+	case 10:
+		debug_printf("");			break;
+	case 11:
+		debug_printf("");			break;
+	case 12:
+		debug_printf("");			break;
+	case 13:
+		debug_printf("");			break;
+	case 14:
+		debug_printf("");			break;
+	case 13371337:
+		debug_printf("ВСЕ ЛОГИ");	break;
+	}
+}
 
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogPoint_Type
@@ -332,34 +354,33 @@ LOG_RES LogPoint_TypeData(Event_t e, bool_t TimeOption, void * ptr_to_data, uint
 
 
 
+
+
+
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogSend
-* Описание	     :	Функция отправки данных из буфера документирования в МД.
+* Описание	     :	Функция отправки данных из всех банков.
 * Аргументы      :	NULL
 * Возвращает     :
 *************************************************************************************************************************************************/
-LOG_RES LogSend(void)
+LOG_RES LogSend( LOG_RES(*SendData)(uint32_t size, uint32_t * data))
 {
-	obmen_t ObmenLog;
 	if(num_of_log_part == 0) return NOTHING2SEND;
 	for(uint32_t i = 0; i<num_of_log_part; i++)
 	{
-		ObmenLog.number = 1337;
-		ObmenLog.data = (uint8_t*)MemTab[i].BankStart;
-		ObmenLog.size = (uint32_t)MemTab[i].BankEnd - (uint32_t)MemTab[i].BankStart;
-//#if OTL_PRINT_LOG
-		debug_printf("\nОтправка %u банка размером %u",i, ObmenLog.size);
-//#endif
-		ochAdd(och_SPI_MM, &ObmenLog);
-		mem_free(MemTab[i].BankStart);
+		COLORPRNT_YELLOW();	debug_printf("\nВыгрузка банка %u/%u", i+1,num_of_log_part);	COLORPRNT_RESET();
+		SendData((uint32_t)MemTab[i].BankEnd - (uint32_t)MemTab[i].BankStart, MemTab[i].BankStart);
+		//mem_free(MemTab[i].BankStart);	//spi сам чистит
 		MemTab[i].BankStart = MemTab[i].BankEnd = mem_border[i] =  0;
 	}
+	COLORPRNT_GREEN();debug_printf("\nГОТОВО!\n");
 	curr_mem_ptr = 0;
 	num_of_log_part = 0;
 	return SUCCSES;
 }
 
-#if NewPrintVer
+
+
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogPrintRam
 * Описание	     :	Функция печати задокументированных данных из банков динамики.
@@ -378,11 +399,18 @@ void LogPrintRam(uint32_t log_count, ...)
 	uint32_t * read_ptr = 0;			//указатель чтения
 	uint32_t variable = 0;				//запасная переменная
 	uint32_t FLAG_VA = 0;				//флаг успешного поиска аргумента
-
-
+	COLORPRNT_GREEN();debug_printf("\nПечать логов по событиям Event_t: ")	;COLORPRNT_RESET();
+	for(uint32_t i = 0; i<log_count; i++)
+	{
+		COLORPRNT_SKY(); PrintEventName(va_arg(arg_ptr, Event_t)); COLORPRNT_RESET();
+		debug_printf(", ");
+	}
+	va_start (arg_ptr, log_count);
 	for(uint32_t i = 0; i < num_of_log_part; i++)		//чтение происходит по банкам
 	{
+#if OTL_PRINT_LOG
 		debug_printf("\nЛоги %u банка", i);
+#endif
 		read_ptr = MemTab[i].BankStart;
 		while(read_ptr < MemTab[i].BankEnd)
 		{
@@ -588,7 +616,7 @@ void LogPrintRam(uint32_t log_count, ...)
 				read_ptr += sizeof(LogTTAs_t)/4;
 				if(FLAG_VA)
 				{
-					COLORPRNT_RED();	print_OchName(*read_ptr);												COLORPRNT_RESET();
+					COLORPRNT_RED();	PrintOchName(*read_ptr);												COLORPRNT_RESET();
 	//									debug_printf("Обмен #");
 					COLORPRNT_YELLOW();	debug_printf("%u\t",*(read_ptr+1));										COLORPRNT_RESET();
 	//									debug_printf("размером ");
@@ -608,174 +636,6 @@ void LogPrintRam(uint32_t log_count, ...)
 	log_counter=0;
 	va_end(arg_ptr);
 }
-
-
-
-#else
-/*************************************************************************************************************************************************
-* Имя функции	 :	LogPrintFromBuff
-* Описание	     :	Функция печати задокументированных данных из банков динамики.
-* Аргументы      :	Event_t e - для выборочной печати определенного события.
-* Возвращает     :	NULL.
-*************************************************************************************************************************************************/
-void LogPrintRam(Event_t e)
-{
-	uint32_t log_counter = 0;
-	uint32_t * read_ptr = 0;
-	uint32_t variable = 0;
-
-	for(uint32_t i = 0; i < num_of_log_part; i++)
-	{
-		debug_printf("\nЛоги %u банка", i);
-		read_ptr = MemTab[i].BankStart;
-		while(read_ptr < MemTab[i].BankEnd)
-		{
-#if OTL_PRINT_LOG
-			debug_printf("\nЧитаем по адресу %#x", read_ptr);
-			debug_printf("\nСВИЧ - ((LogT_t*)read_ptr)->type - %u", ((LogT_t*)read_ptr)->type);
-#endif
-			switch(  ((LogT_t*)read_ptr)->type  )
-			{
-
-			case TEST0:		//LogT_t
-				COLORPRNT_WHITE();
-				if(e ==  TEST0 || e == ALL)		debug_printf("\n%u. ЛОГ ТЕСТ ФС ТИП СОБЫТИЯ - %u", ++log_counter, ((LogT_t*)read_ptr)->type);
-				read_ptr += sizeof(LogT_t)/4;
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST0_TI:	//LogTT_t
-				COLORPRNT_BLUE();
-				if(e ==  TEST0_TI || e == ALL)	debug_printf("\n%u. ЛОГ ТЕСТ ФС+ВРЕМЯ, ТИП СОБЫТИЯ - %u, ВРЕМЯ - %u", ++log_counter, ((LogTT_t*)read_ptr)->type, ((LogTT_t*)read_ptr)->time);
-				read_ptr += sizeof(LogTT_t)/4;
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST1:		//LogTA_t
-				COLORPRNT_GREEN();
-				if(e ==  TEST1 || e == ALL)	debug_printf("\n%u. ЛОГ ТЕСТ ФС+АРГУМЕНТ ТИП СОБЫТИЯ - %u,  АРГУМЕНТ - %u",++log_counter, ((LogTA_t*)read_ptr)->type, ((LogTA_t*)read_ptr)->arg);
-				read_ptr += sizeof(LogTA_t)/4;
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST1_TI:	//LogTTA_t
-				COLORPRNT_GREEN();
-				if(e ==  TEST1_TI || e == ALL)	debug_printf("\n%u. ЛОГ ТЕСТ ФС+ВРЕМЯ+АРГУМЕНТ ТИП СОБЫТИЯ - %u, АРГУМЕНТ - %u, ВРЕМЯ - %u",++log_counter, ((LogTTA_t*)read_ptr)->type, ((LogTTA_t*)read_ptr)->arg, ((LogTTA_t*)read_ptr)->time);
-				read_ptr += sizeof(LogTTA_t)/4;
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST2:		//LogTAs_t
-				variable = ((LogTAs_t*)read_ptr)->arg_count;
-				COLORPRNT_SKY();
-				if(e ==  TEST2 || e == ALL)
-				{
-					debug_printf("\n%u. ЛОГ ТЕСТ ФС+ВРЕМЯ+АРГУМЕНТЫ ТИП СОБЫТИЯ - %u", ++log_counter, ((LogTAs_t*)read_ptr)->type);
-					debug_printf("\nКоличество аргументов - %u", ((LogTAs_t*)read_ptr)->arg_count);
-					debug_printf("\nАргументы: ");
-				}
-				read_ptr += sizeof(LogTAs_t)/4;
-				for(uint32_t i = 0; i<variable; i++)
-				{
-					if(e ==  TEST2 || e == ALL) debug_printf("%u ", *read_ptr);
-					read_ptr++;
-				}
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST2_TI:	//LogTTAs_t
-				variable = ((LogTTAs_t*)read_ptr)->arg_count;
-				COLORPRNT_SKY();
-				if(e ==  TEST2_TI || e == ALL)
-				{
-					debug_printf("\n%u. ЛОГ ТЕСТ ФС+ВРЕМЯ+АРГУМЕНТЫ ТИП СОБЫТИЯ - %u ВРЕМЯ - %u.",++log_counter, ((LogTTAs_t*)read_ptr)->type, ((LogTTAs_t*)read_ptr)->time);
-					debug_printf("\nКоличество аргументов - %u", ((LogTTAs_t*)read_ptr)->arg_count);
-					debug_printf("\nАргументы: ");
-				}
-				read_ptr += sizeof(LogTTAs_t)/4;
-				for(uint32_t i = 0; i<variable; i++)
-				{
-					if(e ==  TEST2_TI || e == ALL) debug_printf("%u ", *read_ptr);
-					read_ptr++;
-				}
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST3:	//LogTD_t
-				variable = ((LogTD_t*)read_ptr)->size;
-				COLORPRNT_RED();
-				if(e ==  TEST3 || e == ALL)
-				{
-					debug_printf("\n%u. ЛОГ ТЕСТ ФС+ДАННЫЕ ТИП СОБЫТИЯ - %u",++log_counter, ((LogTD_t*)read_ptr)->type);
-					debug_printf("\nРазмер данных - %u", ((LogTD_t*)read_ptr)->size);
-					debug_printf("\nДанные: ");
-				}
-				read_ptr += sizeof(LogTD_t)/4;
-				/*КАЖДЫЙ РАЗРАБОТЧИК САМ ДЛЯ СЕБЯ ОПИСЫВАЕТ ПРАВИЛА ЧТЕНИЯ ДАННЫХ КОТОРЫЕ ОН ЗАДОКУМЕНТИРОВАЛ*/
-				for(uint32_t i = 0; i<variable/sizeof(uint32_t); i++)
-				{
-					if(e ==  TEST3 || e == ALL) debug_printf("%u ", *read_ptr);
-					read_ptr++;
-				}
-				COLORPRNT_RESET();
-				break;
-
-
-			case TEST3_TI:	//LogTTD_t
-				variable = ((LogTTD_t*)read_ptr)->size;
-				COLORPRNT_RED();
-				if(e ==  TEST3_TI || e == ALL)
-				{
-					debug_printf("\n%u. ЛОГ ТЕСТ ФС+ВРЕМЯ+ДАННЫЕ ТИП СОБЫТИЯ - %u ВРЕМЯ - %u",++log_counter, ((LogTTD_t*)read_ptr)->type, ((LogTTD_t*)read_ptr)->time);
-					debug_printf("\nРазмер данных - %u", ((LogTTD_t*)read_ptr)->size);
-					debug_printf("\nДанные:");
-				}
-				read_ptr += sizeof(LogTTD_t)/4;
-				/*КАЖДЫЙ РАЗРАБОТЧИК САМ ДЛЯ СЕБЯ ОПИСЫВАЕТ ПРАВИЛА ЧТЕНИЯ ДАННЫХ КОТОРЫЕ ОН ЗАДОКУМЕНТИРОВАЛ*/
-				for(uint32_t i = 0; i<variable/sizeof(uint32_t); i++)
-				{
-					if(e ==  TEST3_TI || e == ALL)	debug_printf("%u ", *read_ptr);
-					read_ptr++;
-				}
-				COLORPRNT_RESET();
-				break;
-
-
-			case OCH_ADD:	//Лог OchAdd
-				if(e ==  OCH_ADD || e == ALL)
-				{
-					debug_printf("\n%u.", ++log_counter);
-					debug_printf("\tОчередь\tОбмен\tРазмер\t\tВРЕМЯ\n");
-				}
-				variable = ((LogTTAs_t*)read_ptr)->arg_count;
-				read_ptr += sizeof(LogTTAs_t)/4;
-				if(e ==  OCH_ADD || e == ALL)
-				{
-					COLORPRNT_RED();	print_OchName(*read_ptr);												COLORPRNT_RESET();
-	//									debug_printf("Обмен #");
-					COLORPRNT_YELLOW();	debug_printf("%u\t",*(read_ptr+1));										COLORPRNT_RESET();
-	//									debug_printf("размером ");
-					COLORPRNT_GREEN();	debug_printf("%u.\t\t",*(read_ptr+2));									COLORPRNT_RESET();
-	//									debug_printf("ВРЕМЯ: ");
-					COLORPRNT_SKY();	debug_printf("%u.", ((LogTTAs_t*)read_ptr-sizeof(LogTTAs_t)/4)->time);	COLORPRNT_RESET();
-				}
-				read_ptr +=variable;
-				break;
-			}
-		}
-	}
-	COLORPRNT_RED();
-	if(num_of_log_part == 0) debug_printf("\nЛогов для печати нет!");
-	COLORPRNT_RESET();
-	log_counter=0;
-}
-#endif
 
 
 
@@ -811,8 +671,19 @@ void LogPrintState(void)
 	else	{ COLORPRNT_RED();debug_printf("\nСистема не была задействована!");COLORPRNT_RESET(); }
 }
 
-
-
+void LogHelp()
+{
+	COLORPRNT_GREEN(); debug_printf("\nКоманды системы документирования: "); COLORPRNT_RESET();
+	debug_printf("\n\t\"log state\"\t	- печать состояния система документирования");
+	debug_printf("\n\t\"log test\"\t	- тестирование системы документирования");
+	debug_printf("\n\t\"log sendMD\"\t	- отправка данных из всех задействованных банков в МД");
+	debug_printf("\n\t\"log help\"\t	- печать доступных команд системы документирования");
+	debug_printf("\n\t\"log print\"\t	- печать всей задокументированной информации");
+	debug_printf("\n\t\"log printoch\"\t	- печать задокументированной информации по событию OCH_ADD");
+	debug_printf("\n\t\"log printtestt\"\t- печать задокументированной информации по тестовым событиям с временем");
+	debug_printf("\n\t\"log printtest\"\t	- печать задокументированной информации по тестовым событиям без времени");
+	debug_printf("\n\t\"log printtest01\"\t- печать задокументированной информации по тестовым событиям TEST0, TEST1");
+}
 
 
 
