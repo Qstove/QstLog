@@ -47,11 +47,11 @@ static void PrintOchName(uint32_t number)
 	switch(number)
 	{
 	case 0:
-		debug_printf("\t1очередь\t");		break;
+		debug_printf("\t1очередь\t");	break;
 	case 1:
-		debug_printf("\t2очередьt");		break;
+		debug_printf("\t2очередьt");	break;
 	case 2:
-		debug_printf("\t3очередьt");		break;
+		debug_printf("\t3очередьt");	break;
 	case 3:
 		debug_printf("\t4очередьt");	break;
 	case 4:
@@ -69,13 +69,13 @@ static void PrintOchName(uint32_t number)
 	case 10:
 		debug_printf("\tTest\t");	break;
 	case 11:
-		debug_printf("\t11очередь\t");break;
+		debug_printf("\t11очередь\t");	break;
 	case 12:
-		debug_printf("\tUART_1\t"); break;
+		debug_printf("\tUART_1\t"); 	break;
 	case 13:
-		debug_printf("\t12очередь\t"); break;
+		debug_printf("\t12очередь\t");	break;
 	case 14:
-		debug_printf("\tUART_2\t"); break;
+		debug_printf("\tUART_2\t"); 	break;
 	case 15:
 		debug_printf("\t15очередь\t");	break;
 	}
@@ -90,31 +90,31 @@ static void PrintEventName(Event_t e)
 	case 1:
 		debug_printf("ТЕСТ0");		break;
 	case 2:
-		debug_printf("ТЕСТ0+ВРЕМЯ");break;
+		debug_printf("ТЕСТ0+ВРЕМЯ");	break;
 	case 3:
 		debug_printf("ТЕСТ1");		break;
 	case 4:
-		debug_printf("ТЕСТ1+ВРЕМЯ");break;
+		debug_printf("ТЕСТ1+ВРЕМЯ");	break;
 	case 5:
 		debug_printf("ТЕСТ2");		break;
 	case 6:
-		debug_printf("ТЕСТ2+ВРЕМЯ");break;
+		debug_printf("ТЕСТ2+ВРЕМЯ");	break;
 	case 7:
 		debug_printf("ТЕСТ3");		break;
 	case 8:
-		debug_printf("ТЕСТ3+ВРЕМЯ");break;
+		debug_printf("ТЕСТ3+ВРЕМЯ");	break;
 	case 9:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 10:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 11:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 12:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 13:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 14:
-		debug_printf("");			break;
+		debug_printf("");		break;
 	case 13371337:
 		debug_printf("ВСЕ ЛОГИ");	break;
 	}
