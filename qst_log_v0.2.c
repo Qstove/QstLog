@@ -118,8 +118,6 @@ static void PrintEventName(Event_t e)
 	case 13371337:
 		debug_printf("ВСЕ ЛОГИ");	break;
 	}
-}
-
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogPoint_Type
 * Описание	 :	Функция для документирования определенного события с(без) временем(ни).
@@ -128,11 +126,13 @@ static void PrintEventName(Event_t e)
 * Возвращает     :	SUCCSES 		- документирование прошло успешно,
 * 			MALLOC_FAILED 		- пул не выделил память,
 *			BAD_PARAM 		- ошибка входных параметров.
+*			BANKS_FULL		- все банки заполнены.
 *************************************************************************************************************************************************/
-LOG_RES LogPoint_Type(Event_t e,  bool_t TimeOption)
+LOG_RES LogPoint_Type(Event_t e,  TimeOpt_t TimeOption)
 {
-	if(e < 0  ||  e > 65535) 					return BAD_PARAM;
+	if(e < 0  ||  e > 65535) 			return BAD_PARAM;
 	if(num_of_log_part == 0)	if(MemAdd()) 	return MALLOC_FAILED;	//эта ветка работает только при самом первом пуске.
+
 	if(TimeOption == TIME)
 	{
 		if((uint8_t*)curr_mem_ptr+sizeof(LogTT_t)  >  (uint8_t*)mem_border[num_of_log_part-1])
@@ -140,7 +140,8 @@ LOG_RES LogPoint_Type(Event_t e,  bool_t TimeOption)
 #if OTL_PRINT_LOG
 		debug_printf("\nНе хватает памяти в банке №%u", num_of_log_part-1);
 #endif
-			if(MemAdd()) return MALLOC_FAILED;
+			if(num_of_log_part >= LOG_BANK_COUNT)	return BANKS_FULL;
+			if(MemAdd())				return MALLOC_FAILED;
 		}
 		LogTT_t logTT = {0};
 		logTT.type = e;
@@ -188,10 +189,11 @@ debug_printf("\nДокументируем по адресу %#x", curr_mem_ptr)
 * Возвращает     :	SUCCSES 		- документирование прошло успешно,
 * 			MALLOC_FAILED 		- пул не выделил память,
 *			BAD_PARAM 		- ошибка входных параметров.
+*			BANKS_FULL		- все банки заполнены.
 *************************************************************************************************************************************************/
-LOG_RES LogPoint_TypeArg(Event_t e, bool_t TimeOption, uint32_t arg)
+LOG_RES LogPoint_TypeArg(Event_t e, TimeOpt_t TimeOption, uint32_t arg)
 {
-	if(e < 0  ||  e > 65535) 				return BAD_PARAM;
+	if(e < 0  ||  e > 65535) 		return BAD_PARAM;
 	if(num_of_log_part == 0) if(MemAdd()) 	return MALLOC_FAILED;							//эта ветка работает только при самом первом пуске.
 	if(TimeOption == TIME)
 	{
@@ -200,6 +202,7 @@ LOG_RES LogPoint_TypeArg(Event_t e, bool_t TimeOption, uint32_t arg)
 #if OTL_PRINT_LOG
 		debug_printf("\nНе хватает памяти в банке №%u", num_of_log_part-1);
 #endif
+			if(num_of_log_part >= LOG_BANK_COUNT)	return BANKS_FULL;
 			if(MemAdd()) return MALLOC_FAILED;
 		}
 		LogTTA_t logTTA;
@@ -249,8 +252,9 @@ debug_printf("\nЗадокументировали аргумент - %u по а
 * Возвращает     :	SUCCSES 		- документирование прошло успешно,
 * 			MALLOC_FAILED 		- пул не выделил память,
 *			BAD_PARAM 		- ошибка входных параметров.
+*			BANKS_FULL		- все банки заполнены.
 *************************************************************************************************************************************************/
-LOG_RES LogPoint_TypeArgS(Event_t e, bool_t TimeOption, uint32_t arg_count, ...)
+LOG_RES LogPoint_TypeArgS(Event_t e, TimeOpt_t TimeOption, uint32_t arg_count, ...)
 {
 	uint32_t ArgArr[arg_count];
 	va_list arg_ptr;
@@ -263,6 +267,7 @@ LOG_RES LogPoint_TypeArgS(Event_t e, bool_t TimeOption, uint32_t arg_count, ...)
 	{
 		if((uint8_t*)curr_mem_ptr + sizeof(LogTTAs_t) + arg_count*4  >  (uint8_t*)mem_border[num_of_log_part-1])
 		{
+			if(num_of_log_part >= LOG_BANK_COUNT)	return BANKS_FULL;
 #if OTL_PRINT_LOG
 		debug_printf("\nНе хватает памяти в банке №%u", num_of_log_part-1);
 #endif
@@ -309,8 +314,9 @@ LOG_RES LogPoint_TypeArgS(Event_t e, bool_t TimeOption, uint32_t arg_count, ...)
 * Возвращает     :	SUCCSES 		- документирование прошло успешно,
 * 			MALLOC_FAILED 		- пул не выделил память,
 *			BAD_PARAM 		- ошибка входных параметров.
+*			BANKS_FULL		- все банки заполнены.
 *************************************************************************************************************************************************/
-LOG_RES LogPoint_TypeData(Event_t e, bool_t TimeOption, void * ptr_to_data, uint32_t size)
+LOG_RES LogPoint_TypeData(Event_t e, TimeOpt_t TimeOption, void * ptr_to_data, uint32_t size)
 {
 	if(e < 0  ||  e > 65535 || size <= 0) 		return BAD_PARAM;
 	if(num_of_log_part == 0)	if(MemAdd()) 	return MALLOC_FAILED;						//эта ветка работает только при самом первом пуске.
@@ -318,6 +324,7 @@ LOG_RES LogPoint_TypeData(Event_t e, bool_t TimeOption, void * ptr_to_data, uint
 	{
 		if((uint8_t*)curr_mem_ptr+sizeof(LogTTD_t)+size  >  (uint8_t*)mem_border[num_of_log_part-1])
 		{
+			if(num_of_log_part >= LOG_BANK_COUNT)	return BANKS_FULL;
 #if OTL_PRINT_LOG
 		debug_printf("\nНе хватает памяти в банке №%u", num_of_log_part-1);
 #endif
@@ -360,7 +367,8 @@ LOG_RES LogPoint_TypeData(Event_t e, bool_t TimeOption, void * ptr_to_data, uint
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogSend
 * Описание	 :	Функция отправки данных из всех банков.
-* Аргументы      :	NULL
+* Аргументы      :	LOG_RES(*SendData)(uint32_t size, uint32_t * data) - указатель на функцию, передающую документируемые
+* 			по адресу * data и размером size байт данные.
 * Возвращает     :
 *************************************************************************************************************************************************/
 LOG_RES LogSend( LOG_RES(*SendData)(uint32_t size, uint32_t * data))
@@ -384,12 +392,14 @@ LOG_RES LogSend( LOG_RES(*SendData)(uint32_t size, uint32_t * data))
 /*************************************************************************************************************************************************
 * Имя функции	 :	LogPrintRam
 * Описание	 :	Функция печати задокументированных данных из банков динамики.
-* Аргументы      :	Event_t e - для выборочной печати определенного события.
+* Аргументы      :	uint32_t log_count 	- кол-во событий, задействованных в печати.
+* 			...			- enum'ы событий, которые требуется распечатать
 * Возвращает     :	NULL.
 *************************************************************************************************************************************************/
-void LogPrintRam(uint32_t log_count, ...)
+LOG_RES LogPrintRam(uint32_t log_count, ...)
 {
 	/*Инструмент работы с переменным количеством аргументов*/
+	if(log_count <= 0) 				return BAD_PARAM;
 	va_list arg_ptr;
 	uint32_t va_arg_var = 0;
 	va_start (arg_ptr, log_count);
@@ -635,6 +645,7 @@ void LogPrintRam(uint32_t log_count, ...)
 	COLORPRNT_RESET();
 	log_counter=0;
 	va_end(arg_ptr);
+	return SUCCSES;
 }
 
 
@@ -671,6 +682,14 @@ void LogPrintState(void)
 	else	{ COLORPRNT_RED();debug_printf("\nСистема не была задействована!");COLORPRNT_RESET(); }
 }
 
+
+
+/*************************************************************************************************************************************************
+* Имя функции	 :	LogHelp
+* Описание	     :	Функция печати доступных системе команд.
+* Аргументы      :	NULL.
+* Возвращает     :	NULL.
+*************************************************************************************************************************************************/
 void LogHelp()
 {
 	COLORPRNT_GREEN(); debug_printf("\nКоманды системы документирования: "); COLORPRNT_RESET();
@@ -680,9 +699,9 @@ void LogHelp()
 	debug_printf("\n\t\"log help\"\t	- печать доступных команд системы документирования");
 	debug_printf("\n\t\"log print\"\t	- печать всей задокументированной информации");
 	debug_printf("\n\t\"log printoch\"\t	- печать задокументированной информации по событию OCH_ADD");
-	debug_printf("\n\t\"log printtestt\"\t	- печать задокументированной информации по тестовым событиям с временем");
+	debug_printf("\n\t\"log printtestt\"\t- печать задокументированной информации по тестовым событиям с временем");
 	debug_printf("\n\t\"log printtest\"\t	- печать задокументированной информации по тестовым событиям без времени");
-	debug_printf("\n\t\"log printtest01\"\t - печать задокументированной информации по тестовым событиям TEST0, TEST1");
+	debug_printf("\n\t\"log printtest01\"\t- печать задокументированной информации по тестовым событиям TEST0, TEST1");
 }
 
 
