@@ -19,7 +19,8 @@ typedef enum{		//перечень ретернов
 	NOTHING2SEND,
 	MALLOC_FAILED,
 	BAD_PARAM,
-	TEST_ERR
+	TEST_ERR,
+	BANKS_FULL
 }LOG_RES;
 
 typedef enum{		//c/без таймером
@@ -32,7 +33,7 @@ typedef enum{			//характеризует событие
 	OCH_ADD= 0,			//LogTTAs_t
 
 /*TEST ENUMS*/
-	TEST0, 			//LogT_t
+	TEST0, 				//LogT_t
 	TEST0_TI,			//LogTT_t
 
 	TEST1,				//LogTA_t
@@ -62,14 +63,14 @@ typedef struct {
 
 /*ПРОТОТИПЫ ФУНКЦИЙ ЛОГИРОВАНИЯ И СТРУКТУРЫ ДАННЫХ*/
 
-void LogPrintRam(uint32_t log_count, ...);										//печать логов
 
 void LogHelp(void);
 void LogPrintState(void);														//печать состояния памяти системы
 void TEST_LOG_SYSTEM(void);
 
+LOG_RES LogPrintRam(uint32_t log_count, ...);									//печать логов
 LOG_RES LogSend(LOG_RES(*SendData)(uint32_t size, uint32_t * data));															//отправка логов в МД
-LOG_RES LogPoint_Type(Event_t e, bool_t TimeOption);							//для логирования события c(без) временем(ни)
+LOG_RES LogPoint_Type(Event_t e, TimeOpt_t TimeOption);							//для логирования события c(без) временем(ни)
 /*__________________________________________________________________________________________________________________________________________*/
 typedef  struct {	//8 байт, time TRUE
 	uint16_t type;
@@ -82,7 +83,7 @@ typedef  struct {	//4 байт, time FALSE
 
 
 
-LOG_RES LogPoint_TypeArg(Event_t e, bool_t TimeOption, uint32_t arg);				//для логирования события, c/без времени, аргумента
+LOG_RES LogPoint_TypeArg(Event_t e, TimeOpt_t TimeOption, uint32_t arg);				//для логирования события, c/без времени, аргумента
 /*__________________________________________________________________________________________________________________________________________*/
 typedef struct {		//12 байт, time TRUE
 	uint16_t type;
@@ -97,7 +98,7 @@ typedef struct {		//8 байт, time FALSE
 
 
 
-LOG_RES LogPoint_TypeArgs(Event_t e, bool_t TimeOption, uint32_t arg_count, ...);	//для логирования события, c/без времени, и нескольких аргументов
+LOG_RES LogPoint_TypeArgs(Event_t e, TimeOpt_t TimeOption, uint32_t arg_count, ...);	//для логирования события, c/без времени, и нескольких аргументов
 /*__________________________________________________________________________________________________________________________________________*/
 typedef struct {		//12 байт, time TRUE
 	uint16_t type;
@@ -112,7 +113,7 @@ typedef struct {		//8 байт, time FALSE
 
 
 
-LOG_RES LogPoint_TypeData(Event_t e, bool_t TimeOption, void * ptr_to_data, uint32_t size);	//для логирования события, времени события и массива данных
+LOG_RES LogPoint_TypeData(Event_t e, TimeOpt_t TimeOption, void * ptr_to_data, uint32_t size);	//для логирования события, времени события и массива данных
 /*__________________________________________________________________________________________________________________________________________*/
 typedef struct {		//12 байт , time TRUE
 	uint16_t type;
